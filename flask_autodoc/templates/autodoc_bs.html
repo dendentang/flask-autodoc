@@ -36,12 +36,16 @@
                     {% endfor %}
                 </div>
                 <div class="margin-between-members">
-                    <h4>Args</h4>
+                    <h4>Arguments</h4>
                     {% for arg in doc.args %}
                     <p class="label label-success">{{arg}}<span class="text-primary">{{doc.defaults[arg]}}</span></p>
                     {% endfor %}
                 </div>
                 <div class="margin-between-members panel panel-primary">
+                    {% if doc.params %}
+                    <div class="panel-heading">Params</div>
+                    <pre class="panel-body">{{doc.params}}</pre>
+                    {% endif %}
                     <div class="panel-heading">Description</div>
                     <pre class="panel-body">{{doc.docstring}}</pre>
                 </div>
