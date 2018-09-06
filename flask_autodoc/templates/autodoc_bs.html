@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <title>
+            {% if title is defined -%}
+                {{title}}
+            {% else -%}
+                Documentation
+            {% endif -%}
+        </title>
+        <style>
+            .margin-between-members{
+                margin-top: 15px;            
+            }
+            .margin-each-api{
+                margin-bottom: 50px;            
+            }
+        </style>
+    </head>
+    <body>
+        <h1>
+            {% if title is defined -%}
+                {{title}}
+            {% else -%}
+                Documentation
+            {% endif -%}
+        </h1>
+
+        <div class="col-xs-8 col-sm-9">
+        {% for doc in autodoc %}
+            <div class="margin-each-api">
+                <div>
+                    <h3 id="rule-{{doc.rule|urlencode}}">{{doc.rule|escape}}</h3>
+                    {% for method in doc.methods -%}
+                    <p class="label label-primary">{{method}}</p>
+                    {% endfor %}
+                </div>
+                <div class="margin-between-members">
+                    <h4>Args</h4>
+                    {% for arg in doc.args %}
+                    <p class="label label-success">{{arg}}<span class="text-primary">{{doc.defaults[arg]}}</span></p>
+                    {% endfor %}
+                </div>
+                <div class="margin-between-members panel panel-primary">
+                    <div class="panel-heading">Description</div>
+                    <div class="panel-body">{{doc.docstring}}</div>
+                </div>
+            </div>
+        {% endfor %}
+        </div> <!--col-xs-8 col-sm-9-->
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    </body>
+</html>
