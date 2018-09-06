@@ -5,7 +5,7 @@ from collections import defaultdict
 import sys
 import inspect
 
-from flask import current_app, render_template, render_template_string
+from flask import current_app, render_template, render_template_string, request
 from jinja2 import evalcontextfilter
 
 
@@ -29,7 +29,7 @@ class Autodoc(object):
         self.func_props = defaultdict()
         self.immutable_props = ['rule', 'endpoint']
         self.default_props = ['methods', 'docstring', 
-            'args', 'defaults', 'location'] + self.immutable_props
+            'args', 'defaults', 'location', 'params'] + self.immutable_props
         self.func_locations = defaultdict(dict)
         if app is not None:
             self.init_app(app)
@@ -60,6 +60,20 @@ class Autodoc(object):
             result = '\n\n'.join('%s' % p.replace('\n', '<br>\n')
                                  for p in _paragraph_re.split(value))
             return result
+
+    def decode_to_JSON_keys(self, code):
+        """Find request.args.to_dict() in code, and turn to JSON."""
+        keys = []
+        _var = ''
+        key_re = r'\[(.+)\]'
+        for line in code.split('\n'):
+            if 'request.args.to_dict()' in line:
+                _var = line.split('=')[0].replace(' ','')
+            if not _var:
+                continue
+            if re.search(_var + key_re, line):
+                keys.append(re.search(key_re, line[line.find(_var):]).group())
+        return ', '.join(keys)
 
     def doc(self, groups=None, set_location=True, **properties):
         """Add flask route to autodoc for automatic documentation
@@ -121,6 +135,7 @@ class Autodoc(object):
          - doc: docstring of the function
          - args: function arguments
          - defaults: defaults values for the arguments
+         - params: params in url (from 'request.args.to_dict()')
 
         By specifying the group or groups arguments, only routes belonging to
         those groups will be returned.
@@ -145,6 +160,7 @@ class Autodoc(object):
             func_props = self.func_props[func] if func in self.func_props \
                 else {}
             location = self.func_locations.get(func, None)
+            params = self.decode_to_JSON_keys(inspect.getsource(func))
 
             if func_groups.intersection(groups_to_generate):
                 props = dict(
@@ -155,6 +171,7 @@ class Autodoc(object):
                     args=arguments,
                     defaults=rule.defaults,
                     location=location,
+                    params=params,
                 )
                 for p in func_props:
                     if p not in self.immutable_props:
