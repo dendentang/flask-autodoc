@@ -62,17 +62,21 @@ class Autodoc(object):
             return result
 
     def decode_to_JSON_keys(self, code):
-        """Find request.args.to_dict() in code, and turn to JSON."""
+        """Find request.args.to_dict() in code, and return keys."""
         keys = []
         _var = ''
-        key_re = r'\[(.+)\]'
+        key_re = r'\[.+?\]'
         for line in code.split('\n'):
             if 'request.args.to_dict()' in line:
                 _var = line.split('=')[0].replace(' ','')
             if not _var:
                 continue
-            if re.search(_var + key_re, line):
-                keys.append(re.search(key_re, line[line.find(_var):]).group())
+            matches = re.findall(_var + key_re, line) 
+            for m in matches:
+                _key = re.search(key_re, m).group()
+                if not _key in keys and _key.count('\"') < 3 \
+                    and _key.count('\'') < 3:
+                    keys.append(_key)
         return ', '.join(keys)
 
     def doc(self, groups=None, set_location=True, **properties):
